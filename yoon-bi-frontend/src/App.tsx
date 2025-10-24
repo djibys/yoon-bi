@@ -1,12 +1,41 @@
-import { useState } from "react";
-import { Login } from "./components/Login";
+import { useState } from 'react';
+import { Login } from './components/admin/Login';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { Dashboard } from './components/admin/Dashboard';
+import { Users } from './components/admin/Users';
+import { Drivers } from './components/admin/Drivers';
+import { TripsReservations } from './components/admin/TripsReservations';
+import { Financial } from './components/admin/Financial';
+import { Reports } from './components/admin/Reports';
+import { Profile } from './components/admin/Profile';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   const handleLogin = () => {
-    // Ici tu peux ajouter la logique de vérification d'identifiants
     setIsAuthenticated(true);
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'users':
+        return <Users />;
+      case 'drivers':
+        return <Drivers />;
+      case 'trips':
+        return <TripsReservations />;
+      case 'financial':
+        return <Financial />;
+      case 'reports':
+        return <Reports />;
+      case 'profile':
+        return <Profile />;
+      default:
+        return <Dashboard />;
+    }
   };
 
   if (!isAuthenticated) {
@@ -14,10 +43,8 @@ export default function App() {
   }
 
   return (
-    <div className="p-4">
-      <h1>Bienvenue dans l'administration !</h1>
-      <p>Vous êtes connecté.</p>
-      {/* Plus tard tu pourras ajouter le Dashboard ici */}
-    </div>
+    <AdminLayout currentPage={currentPage} onNavigate={setCurrentPage}>
+      {renderPage()}
+    </AdminLayout>
   );
 }

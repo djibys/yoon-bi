@@ -14,32 +14,43 @@ export function Login({ onLogin }: LoginProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
-    // Simulation de connexion
-    setTimeout(() => {
-      // Pour la démo : admin@yoon-bi.sn / admin123
-      if (email === 'admin@yoon-bi.sn' && password === 'admin123') {
-        onLogin();
+    try {
+      const body: any = { motDePasse: password };
+      if (email.includes('@')) {
+        body.email = email;
       } else {
-        setError('Email ou mot de passe incorrect');
-        setIsLoading(false);
+        body.tel = email;
       }
-    }, 1000);
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Email ou mot de passe incorrect');
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      setIsLoading(false);
+      onLogin();
+    } catch (err: any) {
+      setError(err?.message || 'Une erreur est survenue');
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{ width: '100%', maxWidth: '600px' }}>
+    <div className="d-flex min-vh-100 align-items-center justify-content-center py-4">
+      <div className="w-100 px-3 px-sm-0" style={{ maxWidth: '520px' }}>
         {/* Logo */}
         <div className="text-center mb-4">
           <div className="d-flex align-items-center justify-content-center mb-3">
@@ -48,7 +59,7 @@ export function Login({ onLogin }: LoginProps) {
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border rounded-4">
           <Card.Header className="text-center bg-white border-bottom">
             <Card.Title className="mb-1 fw-bold">Connexion Administrateur</Card.Title>
             <Card.Text className="text-muted small">
