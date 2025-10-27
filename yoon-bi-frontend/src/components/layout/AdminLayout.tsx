@@ -1,10 +1,17 @@
 import type { PropsWithChildren } from 'react';
-import { Navbar, Nav, Container, Button } from 'react-bootstrap';
-import { House, Users, Car, Ticket, Wallet, AlertTriangle } from 'lucide-react';
+import { Navbar, Nav, Container, Dropdown } from 'react-bootstrap';
+import { House, Users, Car, Ticket, Wallet, AlertTriangle, User, Settings } from 'lucide-react';
+import { Logo } from '../Logo';
 
-type PageKey = 'dashboard' | 'users' | 'drivers' | 'trips' | 'financial' | 'reports' | 'profile';
+type PageKey = 'dashboard' | 'users' | 'drivers' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
 
-export function AdminLayout({ children, onLogout, onNavigate, active }: PropsWithChildren & { onLogout?: () => void; onNavigate?: (page: PageKey) => void; active?: PageKey }) {
+interface AdminLayoutProps extends PropsWithChildren {
+  onLogout?: () => void;
+  onNavigate?: (page: PageKey) => void;
+  active?: PageKey;
+}
+
+export function AdminLayout({ children, onLogout, onNavigate, active }: AdminLayoutProps) {
   const handleLogout = () => {
     try {
       localStorage.removeItem('token');
@@ -13,12 +20,30 @@ export function AdminLayout({ children, onLogout, onNavigate, active }: PropsWit
       if (onLogout) onLogout();
     }
   };
+
+  const handleProfileClick = () => {
+    if (onNavigate) {
+      onNavigate('profile');
+    }
+  };
+
+  const handleSettingsClick = () => {
+    if (onNavigate) {
+      onNavigate('settings');
+    }
+  };
   return (
-    <div className="admin-layout d-flex">
-      <aside className="admin-sidebar p-3 d-flex flex-column">
-        <div className="d-flex align-items-center gap-2 mb-4 px-2">
-          <div className="brand-logo rounded-3" />
-          <div className="fw-semibold">Yoon-Bi<br /><span className="text-muted small">Admin Dashboard</span></div>
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="sidebar-header">
+          <div className="logo-wrapper">
+            <Logo 
+              size={110}
+              style={{
+                borderRadius: '8px'
+              }}
+            />
+          </div>
         </div>
         <Nav className="flex-column gap-1">
           <Nav.Link active={active === 'dashboard'} onClick={() => onNavigate?.('dashboard')} className="sidebar-link d-flex align-items-center gap-2">
@@ -47,32 +72,51 @@ export function AdminLayout({ children, onLogout, onNavigate, active }: PropsWit
             <span className="badge rounded-pill bg-danger ms-auto">5</span>
           </Nav.Link>
         </Nav>
-        <div className="mt-auto pt-3">
-          <Button variant="danger" className="w-100" onClick={handleLogout}>
-            Déconnexion
-          </Button>
-        </div>
       </aside>
 
-      <div className="admin-main flex-grow-1">
-        <Navbar bg="white" className="admin-topbar border-bottom px-3" expand="sm">
-          <Container fluid className="px-0">
-            <Navbar.Text className="text-muted">Lundi 20 Octobre 2025</Navbar.Text>
-            <div className="ms-auto d-flex align-items-center gap-3">
-              <div className="notif-dot" />
-              <div className="d-flex align-items-center gap-2">
-                <div className="avatar-circle bg-success text-white">AD</div>
-                <div className="d-none d-sm-block">
-                  <div className="fw-semibold small">Admin Principal</div>
-                  <div className="text-muted small">admin@yoon-bi.sn</div>
-                </div>
-              </div>
-            </div>
+      <div className="main-content">
+        <Navbar expand="lg" className="navbar">
+          <Container fluid className="px-4">
+            <Navbar.Text className="text-muted me-auto">Lundi 20 Octobre 2025</Navbar.Text>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+              <Nav>
+                <div className="notif-dot" />
+                <Dropdown align="end" className="dropdown-no-arrow ms-3">
+                  <Dropdown.Toggle as="div" className="p-0 bg-transparent border-0" style={{ backgroundImage: 'none', cursor: 'pointer' }}>
+                    <div className="d-flex align-items-center gap-2 cursor-pointer">
+                      <div className="avatar-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style={{ fontSize: '12px' }}>
+                        AD
+                      </div>
+                      <div className="d-none d-sm-block">
+                        <div className="fw-semibold small">Admin Principal</div>
+                        <div className="text-muted small">admin@yoon-bi.sn</div>
+                      </div>
+                    </div>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="dropdown-menu-end">
+                    <Dropdown.Item onClick={handleProfileClick} className="d-flex align-items-center gap-2">
+                      <User size={16} />
+                      Mon profil
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={handleSettingsClick} className="d-flex align-items-center gap-2">
+                      <Settings size={16} />
+                      Paramètres
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={handleLogout}>
+                      <i className="fas fa-sign-out-alt me-2"></i>
+                      Déconnexion
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Nav>
+            </Navbar.Collapse>
           </Container>
         </Navbar>
-        <main className="admin-content p-3 p-md-4">
+        <div className="p-4">
           {children}
-        </main>
+        </div>
       </div>
     </div>
   );

@@ -24,6 +24,92 @@ a:hover {
 
 html, body, #root {
   height: 100%;
+  overflow: hidden;
+}
+
+/* Styles pour les menus déroulants */
+.dropdown-no-arrow .dropdown-toggle::after {
+  display: none !important;
+}
+
+.dropdown-toggle {
+  background-image: none !important;
+}
+
+/* Styles pour le logo */
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Styles pour la mise en page fixe */
+.admin-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1030;
+  overflow-y: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem;
+}
+
+.sidebar-header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+
+.sidebar-header .logo {
+  height: 40px;
+  width: auto;
+  border-radius: 8px;
+}
+
+.main-content {
+  margin-left: 250px;
+  height: 100vh;
+  overflow-y: auto;
+  padding-top: 56px;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 250px;
+  height: 56px;
+  z-index: 1020;
+  background-color: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
 }
 
 body {
