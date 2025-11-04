@@ -49,9 +49,9 @@ export default function App() {
   };
 
   // Temporairement désactivé pour le débogage
-  // if (!isAuthenticated) {
-  //   return <Login onLogin={handleLogin} />;
-  // }
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <AdminLayout currentPage={currentPage} onNavigate={setCurrentPage} onLogout={handleLogout}>

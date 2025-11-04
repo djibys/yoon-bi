@@ -108,6 +108,36 @@ export const TableauDeBordAPI = {
   },
 };
 
+// =================== Reports (Admin) ===================
+export type ReportClient = { name: string; initials: string; color: string };
+export type ReportChauffeur = { name: string; initials: string; color: string; alerts?: string };
+export type ReportItem = {
+  id: string;
+  date: string;
+  type: string;
+  typeIcon?: string;
+  client: ReportClient;
+  chauffeur: ReportChauffeur;
+  trajet: string;
+  dateDu: string;
+  status?: 'pending' | 'resolved' | 'rejected';
+  description?: string;
+};
+
+export type ListeReports = {
+  items: ReportItem[];
+  total: number;
+  totalPages: number;
+  page: number;
+};
+
+export const AdminReportsAPI = {
+  list: (params: { page?: number; limit?: number; search?: string; type?: string; status?: string }) =>
+    getApi<ListeReports>(`${ADMIN_PREFIX}/reports`, params),
+  resolve: (id: string) => putApi<{ success: boolean; item: ReportItem }>(`${ADMIN_PREFIX}/reports/${id}/resolve`),
+  reject: (id: string) => putApi<{ success: boolean; item: ReportItem }>(`${ADMIN_PREFIX}/reports/${id}/reject`),
+};
+
 export type Utilisateur = {
   _id: string;
   prenom: string;
@@ -200,5 +230,10 @@ export const AdminFinanceAPI = {
   payments: (params: { status?: 'all' | 'success' | 'pending'; page?: number; limit?: number; search?: string }) =>
     getApi<ListePaiements>(`${ADMIN_PREFIX}/finance/payments`, params),
 
-  pendingTrips: () => getApi<TrajetEnAttente[]>(`${ADMIN_PREFIX}/finance/pending-trips`),
+  pendingTrips: async () => {
+    const r = await getApi<{ success?: boolean; items?: TrajetEnAttente[] }>(
+      `${ADMIN_PREFIX}/finance/pending-trips`
+    );
+    return r?.items ?? [];
+  },
 };

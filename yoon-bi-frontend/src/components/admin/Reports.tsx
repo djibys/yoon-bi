@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, FileText, AlertTriangle, UserX, MoreVertical } from 'lucide-react';
+import { AdminReportsAPI, type ReportItem } from '../../services/api';
 
 export default function GestionSignalements() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,73 +9,39 @@ export default function GestionSignalements() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
 
-  const signalements = [
-    {
-      id: 'SIG-2025-001',
-      date: '18/10/2025 15:30',
-      type: 'Tarif abusif',
-      typeIcon: '💰',
-      client: { name: 'Aminata Diallo', initials: 'AD', color: 'primary' },
-      chauffeur: { name: 'Ibrahima Ba', initials: 'IB', color: 'success', alerts: '2 signalements précédents' },
-      trajet: 'Dakar → Thiès',
-      dateDu: '18/10/2025'
-    },
-    {
-      id: 'SIG-2025-002',
-      date: '17/10/2025 09:15',
-      type: 'Comportement',
-      typeIcon: '⚠️',
-      client: { name: 'Fatou Sow', initials: 'FS', color: 'info' },
-      chauffeur: { name: 'Moussa Ndiaye', initials: 'MN', color: 'success', alerts: '' },
-      trajet: 'Dakar → Saint-Louis',
-      dateDu: '17/10/2025'
-    },
-    {
-      id: 'SIG-2025-003',
-      date: '16/10/2025 14:20',
-      type: 'Retard',
-      typeIcon: '⏰',
-      client: { name: 'Ousmane Fall', initials: 'OF', color: 'warning' },
-      chauffeur: { name: 'Abdou Sarr', initials: 'AS', color: 'success', alerts: '' },
-      trajet: 'Dakar → Mbour',
-      dateDu: '16/10/2025'
-    },
-    {
-      id: 'SIG-2025-004',
-      date: '15/10/2025 11:45',
-      type: 'Véhicule',
-      typeIcon: '🚗',
-      client: { name: 'Mariama Sy', initials: 'MS', color: 'secondary' },
-      chauffeur: { name: 'Cheikh Gueye', initials: 'CG', color: 'success', alerts: '1 signalement précédent' },
-      trajet: 'Dakar → Kaolack',
-      dateDu: '15/10/2025'
-    },
-    {
-      id: 'SIG-2025-005',
-      date: '14/10/2025 16:30',
-      type: 'Annulation',
-      typeIcon: '❌',
-      client: { name: 'Ibrahima Diop', initials: 'ID', color: 'danger' },
-      chauffeur: { name: 'Mamadou Kane', initials: 'MK', color: 'success', alerts: '' },
-      trajet: 'Dakar → Tambacounda',
-      dateDu: '14/10/2025'
-    }
-  ];
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [items, setItems] = useState<ReportItem[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const filteredSignalements = signalements.filter(sig => {
-    const matchesSearch = sig.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sig.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sig.chauffeur.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || sig.type === typeFilter;
-    const matchesStatus = statusFilter === 'all';
-    return matchesSearch && matchesType && matchesStatus;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredSignalements.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentSignalements = filteredSignalements.slice(startIndex, endIndex);
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const r = await AdminReportsAPI.list({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchTerm,
+          type: typeFilter,
+          status: statusFilter,
+        });
+        if (!mounted) return;
+        setItems(r?.items || []);
+        setTotalPages(r?.totalPages || 1);
+        setTotal(r?.total || 0);
+      } catch (e: any) {
+        if (!mounted) return;
+        setError(e?.message || 'Erreur lors du chargement des signalements');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    run();
+    return () => { mounted = false; };
+  }, [searchTerm, typeFilter, statusFilter, currentPage]);
 
   // Réinitialiser à la page 1 quand les filtres changent
   const handleFilterChange = (
@@ -152,7 +119,7 @@ export default function GestionSignalements() {
         <div className="col-12">
           <div className="card">
             <div className="card-header pb-0 d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">Liste des signalements ({filteredSignalements.length})</h6>
+              <h6 className="mb-0">Liste des signalements ({total})</h6>
               <button className="btn btn-sm btn-outline-dark mb-0">
                 <FileText size={16} className="me-1" />
                 Exporter
@@ -188,7 +155,19 @@ export default function GestionSignalements() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentSignalements.map((sig) => (
+                    {loading && items.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="text-center text-secondary py-3">Chargement…</td>
+                      </tr>
+                    ) : error ? (
+                      <tr>
+                        <td colSpan={8} className="text-center text-danger py-3">{error}</td>
+                      </tr>
+                    ) : items.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="text-center text-secondary py-3">Aucun signalement</td>
+                      </tr>
+                    ) : items.map((sig) => (
                       <tr key={sig.id}>
                         <td className="ps-4">
                           <p className="text-xs font-weight-bold mb-0">{sig.id}</p>
