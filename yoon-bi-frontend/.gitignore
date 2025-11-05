@@ -7,10 +7,43 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+package-lock.json
+
+# Build
 dist
 dist-ssr
 *.local
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug files
+*.DEBUG.*
+clear-storage.html
+docs/GESTION_ERREURS.md
+
+# Test
+coverage
+.nyc_output
 
 # Editor directories and files
 .vscode/*
