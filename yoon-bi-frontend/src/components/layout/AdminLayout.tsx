@@ -1,17 +1,19 @@
-import type { PropsWithChildren } from 'react';
 import { Navbar, Nav, Container, Dropdown } from 'react-bootstrap';
+import { Outlet } from 'react-router-dom';
 import { House, Users, Car, Ticket, Wallet, AlertTriangle, User, Settings } from 'lucide-react';
 import { Logo } from '../Logo';
+import type { User as UserType } from '../../types/user';
 
 type PageKey = 'dashboard' | 'users' | 'drivers' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
 
-interface AdminLayoutProps extends PropsWithChildren {
+interface AdminLayoutProps {
   onLogout?: () => void;
   onNavigate?: (page: PageKey) => void;
   active?: PageKey;
+  user: UserType | null;
 }
 
-export function AdminLayout({ children, onLogout, onNavigate, active }: AdminLayoutProps) {
+export function AdminLayout({ onLogout, onNavigate, active, user }: AdminLayoutProps) {
   const handleLogout = () => {
     try {
       localStorage.removeItem('token');
@@ -85,12 +87,21 @@ export function AdminLayout({ children, onLogout, onNavigate, active }: AdminLay
                 <Dropdown align="end" className="dropdown-no-arrow ms-3">
                   <Dropdown.Toggle as="div" className="p-0 bg-transparent border-0" style={{ backgroundImage: 'none', cursor: 'pointer' }}>
                     <div className="d-flex align-items-center gap-2 cursor-pointer">
-                      <div className="avatar-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style={{ fontSize: '12px' }}>
-                        AD
-                      </div>
+                      {user?.photo ? (
+                        <img 
+                          src={user.photo} 
+                          alt="Profile" 
+                          className="avatar-circle" 
+                          style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%' }}
+                        />
+                      ) : (
+                        <div className="avatar-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style={{ fontSize: '12px', width: '36px', height: '36px' }}>
+                          {user?.prenom?.charAt(0)}{user?.nom?.charAt(0)}
+                        </div>
+                      )}
                       <div className="d-none d-sm-block">
-                        <div className="fw-semibold small">Admin Principal</div>
-                        <div className="text-muted small">admin@yoon-bi.sn</div>
+                        <div className="fw-semibold small">{user?.prenom} {user?.nom}</div>
+                        <div className="text-muted small">{user?.email}</div>
                       </div>
                     </div>
                   </Dropdown.Toggle>
@@ -115,7 +126,7 @@ export function AdminLayout({ children, onLogout, onNavigate, active }: AdminLay
           </Container>
         </Navbar>
         <div className="p-4">
-          {children}
+          <Outlet />
         </div>
       </div>
     </div>

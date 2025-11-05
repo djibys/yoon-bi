@@ -32,12 +32,25 @@ function entetesAuthentification() {
 
 async function getApi<T>(chemin: string, params?: ParametresHttp): Promise<T> {
   const url = `${API_PREFIX}${chemin}${construireRequete(params)}`;
-  const res = await fetch(url, { headers: entetesAuthentification() });
-  if (!res.ok) {
-    const txt = await safeText(res);
-    throw new Error(`HTTP ${res.status} for ${url}${txt ? ` — ${txt}` : ''}`);
+  console.log('[API GET]', url);
+  
+  try {
+    const res = await fetch(url, { headers: entetesAuthentification() });
+    console.log('[API GET] Statut:', res.status, url);
+    
+    if (!res.ok) {
+      const txt = await safeText(res);
+      console.error('[API GET] Erreur:', res.status, txt, url);
+      throw new Error(`HTTP ${res.status} for ${url}${txt ? ` — ${txt}` : ''}`);
+    }
+    
+    const data = await res.json() as T;
+    console.log('[API GET] ✓ Succès:', url, data);
+    return data;
+  } catch (error) {
+    console.error('[API GET] ✗ Exception:', error, url);
+    throw error;
   }
-  return res.json() as Promise<T>;
 }
 
 async function safeText(res: Response) {

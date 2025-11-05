@@ -20,6 +20,7 @@
     "react": "^19.1.1",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.1",
+    "react-router-dom": "^6.28.0",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

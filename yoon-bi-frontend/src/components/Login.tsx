@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Card, Form, Button, Alert, InputGroup, Spinner } from 'react-bootstrap';
 import logo from '../assets/logo.png';
+import type { User } from '../types/user';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (user: User) => void;
 }
 
 export function Login({ onLogin }: LoginProps) {
@@ -18,6 +19,9 @@ export function Login({ onLogin }: LoginProps) {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    
+    console.log('[LOGIN] Début de la connexion...');
+    
     try {
       const body: any = { motDePasse: password };
       if (email.includes('@')) {
@@ -26,6 +30,8 @@ export function Login({ onLogin }: LoginProps) {
         body.tel = email;
       }
 
+      console.log('[LOGIN] Envoi de la requête à /api/auth/login');
+      
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,17 +39,55 @@ export function Login({ onLogin }: LoginProps) {
       });
 
       const data = await res.json();
+      console.log('[LOGIN] Réponse reçue:', { status: res.status, success: data?.success });
+      
       if (!res.ok || !data?.success) {
         throw new Error(data?.message || 'Email ou mot de passe incorrect');
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      console.log('[LOGIN] Réponse complète:', data);
+      
+      if (!data.token) {
+        throw new Error('Token manquant dans la réponse');
+      }
+      
+      if (!data.user) {
+        throw new Error('Aucune information utilisateur reçue');
+      }
 
-      setIsLoading(false);
-      onLogin();
+      // Nettoyer les données utilisateur (retirer les champs sensibles)
+      const { password: _, motDePasse: __, ...safeUserData } = data.user;
+      
+      // Le backend retourne 'id', pas '_id'
+      const userToStore = {
+        ...safeUserData,
+        // S'assurer que l'id est présent
+        id: safeUserData.id,
+      };
+      
+      console.log('[LOGIN] Données utilisateur à stocker:', {
+        id: userToStore.id,
+        email: userToStore.email,
+        prenom: userToStore.prenom,
+        nom: userToStore.nom,
+        typeUtilisateur: userToStore.typeUtilisateur
+      });
+      
+      // Stocker le token et l'utilisateur
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(userToStore));
+      
+      console.log('[LOGIN] ✓ Token et utilisateur stockés');
+      console.log('[LOGIN] Appel de onLogin...');
+      
+      // Appeler le callback de connexion
+      onLogin(userToStore);
+      
+      console.log('[LOGIN] ✓ Connexion réussie !');
     } catch (err: any) {
+      console.error('[LOGIN] Erreur:', err);
       setError(err?.message || 'Une erreur est survenue');
+    } finally {
       setIsLoading(false);
     }
   };

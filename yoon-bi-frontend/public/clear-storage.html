@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nettoyage du localStorage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #00853F;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #00853F;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #006830;
+        }
+        .info {
+            color: #666;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success">✓</div>
+        <h1>localStorage nettoyé !</h1>
+        <p>Toutes les données de session ont été supprimées.</p>
+        <button onclick="window.location.href='/'">Retour à l'application</button>
+        <p class="info">Vous pouvez maintenant vous connecter avec un compte propre.</p>
+    </div>
+    <script>
+        // Nettoyer le localStorage
+        localStorage.clear();
+        console.log('localStorage nettoyé avec succès');
+    </script>
+</body>
+</html>

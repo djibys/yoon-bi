@@ -33,8 +33,12 @@ export function Financial() {
     let mounted = true;
     const chargerStats = async () => {
       try {
+        console.log('[FINANCE] Chargement des stats pour période:', filtrePeriode);
         setErreur('');
+        
         const r = await AdminFinanceAPI.stats(filtrePeriode);
+        console.log('[FINANCE] Stats reçues:', r);
+        
         const totalRevenue = Number(r?.kpi?.totalRevenue ?? 0);
         const commission = Number(r?.kpi?.commission ?? 0);
         const paidToDrivers = Number(r?.kpi?.paidToDrivers ?? (totalRevenue - commission));
@@ -45,6 +49,15 @@ export function Financial() {
         const netPaid = Number(r?.monthly?.netPaid ?? paidToDrivers);
 
         if (!mounted) return;
+        
+        console.log('[FINANCE] ✓ Stats calculées:', {
+          totalRevenue,
+          commission,
+          paidToDrivers,
+          pendingValidation,
+          completedTrips
+        });
+        
         setKpiTotalRevenus(totalRevenue);
         setKpiCommission(commission);
         setKpiVerseAuxChauffeurs(paidToDrivers);
@@ -54,6 +67,7 @@ export function Financial() {
         setStatsMoisCommission(commissionMonth);
         setStatsMoisNet(netPaid);
       } catch (e: any) {
+        console.error('[FINANCE] ✗ Erreur stats:', e);
         if (!mounted) return;
         setErreur(e?.message || 'Erreur lors du chargement des statistiques');
       }
@@ -67,28 +81,46 @@ export function Financial() {
     let mounted = true;
     const chargerPaiements = async () => {
       try {
+        console.log('[FINANCE] Chargement paiements:', { filtreStatut, pageCourante, recherche });
         setChargement(true);
         setErreur('');
-        const r = await AdminFinanceAPI.payments({ status: filtreStatut, page: pageCourante, limit: elementsParPage, search: recherche });
+        
+        const r = await AdminFinanceAPI.payments({ 
+          status: filtreStatut, 
+          page: pageCourante, 
+          limit: elementsParPage, 
+          search: recherche 
+        });
+        
+        console.log('[FINANCE] Paiements reçus:', r);
+        
         if (!mounted) return;
         setPaiements(r?.items || []);
         setTotalPages(r?.totalPages || 1);
+        console.log('[FINANCE] ✓ Paiements chargés:', r?.items?.length || 0);
       } catch (e: any) {
+        console.error('[FINANCE] ✗ Erreur paiements:', e);
         if (!mounted) return;
         setErreur(e?.message || 'Erreur lors du chargement des paiements');
       } finally {
         if (mounted) setChargement(false);
       }
     };
+    
     const chargerEnAttente = async () => {
       try {
+        console.log('[FINANCE] Chargement trajets en attente...');
         const r = await AdminFinanceAPI.pendingTrips();
+        console.log('[FINANCE] Trajets en attente reçus:', r);
+        
         if (!mounted) return;
         setTrajetsEnAttente(r || []);
+        console.log('[FINANCE] ✓ Trajets en attente chargés:', r?.length || 0);
       } catch (e) {
-        // silencieux
+        console.error('[FINANCE] ✗ Erreur trajets en attente:', e);
       }
     };
+    
     chargerPaiements();
     chargerEnAttente();
     return () => { mounted = false; };
@@ -102,6 +134,16 @@ export function Financial() {
         <h2 className="h5 mb-1">Gestion financière</h2>
         <div className="text-muted small">Suivi des revenus et paiements</div>
       </div>
+
+      {erreur && (
+        <div className="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+          <span>⚠️</span>
+          <div>
+            <strong>Erreur de chargement:</strong> {erreur}
+            <div className="small mt-1">Vérifiez que le serveur backend est démarré et accessible.</div>
+          </div>
+        </div>
+      )}
 
       <Card className="mb-3">
         <Card.Body>
