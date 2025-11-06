@@ -3,16 +3,16 @@
 ## 📁 Fichiers requis
 
 - [x] `.env.production` - Variables d'env pour production
-- [x] `public/_redirects` - Fallback SPA
-- [x] `.vercelignore` - Optimisation build
 - [x] `vite.config.ts` - Config dev
 - [x] `vite.config.prod.ts` - Config production
 - [x] `DEPLOY.md` - Guide de déploiement
 
-## ❌ Fichiers à NE PAS avoir
+## ❌ Fichiers à NE PAS avoir (causent des conflits)
 
-- [ ] ~~vercel.json~~ - Cause des conflits, laissez Vercel auto-détecter
-- [ ] ~~netlify.toml~~ - Pas pour Vercel
+- [ ] ~~vercel.json~~ - Vercel auto-détecte Vite
+- [ ] ~~netlify.toml~~ - Fichier Netlify
+- [ ] ~~public/_redirects~~ - Fichier Netlify (pas Vercel)
+- [ ] ~~public/_headers~~ - Fichier Netlify (pas Vercel)
 
 ## 🔧 Configuration Vercel Dashboard
 

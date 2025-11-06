@@ -1,8 +1,15 @@
 # 🚀 Déploiement Frontend - Vercel
 
-## Configuration minimale (sans vercel.json)
+## Configuration minimale - Zéro fichier de config
 
-Vercel détecte automatiquement Vite. Pas besoin de fichier de config.
+Vercel détecte automatiquement Vite et gère le SPA fallback.
+
+**Pas besoin de:**
+- ❌ vercel.json
+- ❌ _redirects (Netlify)
+- ❌ _headers (Netlify)
+
+Vercel fait tout automatiquement.
 
 ## 📋 Étapes
 
