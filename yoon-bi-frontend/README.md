@@ -59,7 +59,7 @@ src/
 
 ## 📚 Documentation
 
-- [Guide de déploiement Netlify](./DEPLOY_NETLIFY_QUICK.md)
+- [Guide de déploiement Vercel](./DEPLOY_VERCEL.md)
 
 ## 🛠️ Technologies
 
@@ -72,6 +72,6 @@ src/
 
 ## 🌐 Déploiement
 
-Déploiement sur **Netlify** (recommandé).
+Déploiement sur **Vercel**.
 
-Voir [DEPLOY_NETLIFY_QUICK.md](./DEPLOY_NETLIFY_QUICK.md) pour les instructions complètes.
+Voir [DEPLOY_VERCEL.md](./DEPLOY_VERCEL.md) pour les instructions complètes.
