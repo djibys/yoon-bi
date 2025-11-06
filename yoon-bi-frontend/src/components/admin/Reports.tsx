@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, FileText, AlertTriangle, UserX, MoreVertical } from 'lucide-react';
+import { Search, FileText, MoreVertical } from 'lucide-react';
 import { AdminReportsAPI, type ReportItem } from '../../services/api';
 
 export default function GestionSignalements() {

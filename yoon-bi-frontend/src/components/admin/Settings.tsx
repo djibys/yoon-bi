@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 type PasswordFormData = {
   currentPassword: string;

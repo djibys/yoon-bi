@@ -159,6 +159,18 @@ export type Utilisateur = {
   tel: string;
   actif: boolean;
   createdAt?: string;
+  typeUtilisateur?: 'ADMIN' | 'CLIENT' | 'CHAUFFEUR';
+  statutValidation?: 'EN_ATTENTE' | 'VALIDE' | 'REJETE';
+  numPermis?: string;
+  dateValiditePermis?: string;
+  vehicule?: {
+    typeVehicule?: string;
+    marque?: string;
+    modele?: string;
+    immatriculation?: string;
+    nombrePlaces?: number;
+    couleur?: string;
+  };
 };
 
 export type ListeUtilisateurs = {
@@ -174,6 +186,9 @@ export const AdminUsersAPI = {
     getApi<ListeUtilisateurs>(`${ADMIN_PREFIX}/users`, { page, limit, search, type }),
   block: (id: string) => putApi<{ success: boolean; user: Utilisateur }>(`${ADMIN_PREFIX}/users/${id}/block`),
   unblock: (id: string) => putApi<{ success: boolean; user: Utilisateur }>(`${ADMIN_PREFIX}/users/${id}/unblock`),
+  getPendingDrivers: () => getApi<{ success: boolean; count: number; chauffeurs: Utilisateur[] }>(`${ADMIN_PREFIX}/chauffeurs/pending`),
+  validateDriver: (id: string, decision: 'VALIDE' | 'REJETE') => 
+    putApi<{ success: boolean; message: string; chauffeur: Utilisateur }>(`${ADMIN_PREFIX}/chauffeurs/${id}/validate`, { decision }),
 };
 
 export type Trajet = {

@@ -1,10 +1,10 @@
 import { Navbar, Nav, Container, Dropdown } from 'react-bootstrap';
 import { Outlet } from 'react-router-dom';
-import { House, Users, Car, Ticket, Wallet, AlertTriangle, User, Settings } from 'lucide-react';
+import { House, Users, Car, Ticket, Wallet, AlertTriangle, User, Settings, UserCheck } from 'lucide-react';
 import { Logo } from '../Logo';
 import type { User as UserType } from '../../types/user';
 
-type PageKey = 'dashboard' | 'users' | 'drivers' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
+type PageKey = 'dashboard' | 'users' | 'drivers' | 'drivers-validation' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
 
 interface AdminLayoutProps {
   onLogout?: () => void;
@@ -59,6 +59,10 @@ export function AdminLayout({ onLogout, onNavigate, active, user }: AdminLayoutP
           <Nav.Link active={active === 'drivers'} onClick={() => onNavigate?.('drivers')} className="sidebar-link d-flex align-items-center gap-2">
             <Car size={18} />
             <span>Chauffeurs</span>
+          </Nav.Link>
+          <Nav.Link active={active === 'drivers-validation'} onClick={() => onNavigate?.('drivers-validation')} className="sidebar-link d-flex align-items-center gap-2 position-relative">
+            <UserCheck size={18} />
+            <span>Validation chauffeurs</span>
           </Nav.Link>
           <Nav.Link active={active === 'trips'} onClick={() => onNavigate?.('trips')} className="sidebar-link d-flex align-items-center gap-2">
             <Ticket size={18} />

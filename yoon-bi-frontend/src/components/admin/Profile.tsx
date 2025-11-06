@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Mail, Phone, Upload, Lock, Bell, Moon, Globe, Palette, Shield } from 'lucide-react';
+import { User, Mail, Phone, Upload } from 'lucide-react';
 
 type UserData = {
   firstName: string;

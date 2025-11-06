@@ -6,6 +6,7 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { Dashboard } from './components/Dashboard';
 import { Users } from './components/admin/Users';
 import { Drivers } from './components/admin/Drivers';
+import { DriversValidation } from './components/admin/DriversValidation';
 import { TripsReservations } from './components/admin/TripsReservations';
 import { Financial } from './components/admin/Financial';
 import GestionSignalements from './components/admin/Reports';
@@ -179,6 +180,7 @@ export default function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="users" element={<Users />} />
         <Route path="drivers" element={<Drivers />} />
+        <Route path="drivers-validation" element={<DriversValidation />} />
         <Route path="trips" element={<TripsReservations />} />
         <Route path="financial" element={<Financial />} />
         <Route path="reports" element={<GestionSignalements />} />

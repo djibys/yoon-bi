@@ -1,28 +1,38 @@
 import { useEffect, useState } from 'react';
-import { Card, Row, Col, ListGroup, Pagination } from 'react-bootstrap';
-import { Users, Car, Ticket, DollarSign } from 'lucide-react';
+import { Card, Row, Col, ListGroup, Pagination, Button, Badge, Alert, Spinner } from 'react-bootstrap';
+import { Users, Car, Ticket, DollarSign, UserCheck, UserX, Eye } from 'lucide-react';
 import { TableauDeBordAPI, AdminUsersAPI, type ResumeTableauDeBord, type StatistiqueTableauDeBord, type Activite, type Utilisateur } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const [pageCourante, setPageCourante] = useState(1);
   const taillePage = 3;
 
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState<string>('');
+  const [succes, setSucces] = useState<string>('');
   const [resume, setResume] = useState<ResumeTableauDeBord | null>(null);
   const [statistiques, setStatistiques] = useState<StatistiqueTableauDeBord[] | null>(null);
   const [activites, setActivites] = useState<Activite[]>([]);
   const [totalPagesActivites, setTotalPagesActivites] = useState<number>(1);
+  const [pendingDrivers, setPendingDrivers] = useState<Utilisateur[]>([]);
+  const [validatingDriver, setValidatingDriver] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     setChargement(true);
     setErreur('');
-    Promise.all([TableauDeBordAPI.resume(), TableauDeBordAPI.statistiques()])
-      .then(([s, st]) => {
+    Promise.all([
+      TableauDeBordAPI.resume(), 
+      TableauDeBordAPI.statistiques(),
+      AdminUsersAPI.getPendingDrivers()
+    ])
+      .then(([s, st, drivers]) => {
         if (!mounted) return;
         setResume(s);
         setStatistiques(st);
+        setPendingDrivers(drivers.chauffeurs || []);
       })
       .catch((e) => {
         if (!mounted) return;
@@ -76,6 +86,24 @@ export function Dashboard() {
         { libelle: 'Revenus ce mois', valeur: '—' },
       ];
 
+  const handleValidateDriver = async (driverId: string, decision: 'VALIDE' | 'REJETE') => {
+    if (!confirm(`Êtes-vous sûr de vouloir ${decision === 'VALIDE' ? 'valider' : 'rejeter'} ce chauffeur ?`)) return;
+    try {
+      setValidatingDriver(driverId);
+      setErreur('');
+      const res = await AdminUsersAPI.validateDriver(driverId, decision);
+      setSucces(res.message || `Chauffeur ${decision === 'VALIDE' ? 'validé' : 'rejeté'} avec succès`);
+      setTimeout(() => setSucces(''), 3000);
+      // Recharger les chauffeurs en attente
+      const drivers = await AdminUsersAPI.getPendingDrivers();
+      setPendingDrivers(drivers.chauffeurs || []);
+    } catch (e: any) {
+      setErreur(e?.message || 'Erreur lors de la validation');
+    } finally {
+      setValidatingDriver(null);
+    }
+  };
+
   return (
     <div className="container py-4">
       <div className="mb-4">
@@ -84,7 +112,10 @@ export function Dashboard() {
       </div>
 
       {erreur && (
-        <div className="alert alert-danger" role="alert">{erreur}</div>
+        <Alert variant="danger" dismissible onClose={() => setErreur('')}>{erreur}</Alert>
+      )}
+      {succes && (
+        <Alert variant="success" dismissible onClose={() => setSucces('')}>{succes}</Alert>
       )}
 
       <Row className="g-3 mb-4">
@@ -110,6 +141,90 @@ export function Dashboard() {
           );
         })}
       </Row>
+
+      {/* Chauffeurs en attente de validation */}
+      {pendingDrivers.length > 0 && (
+        <Card className="mb-4 shadow-sm border-warning">
+          <Card.Header className="bg-warning bg-opacity-10">
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <Card.Title as="h2" className="h6 mb-0">
+                  <UserCheck size={18} className="me-2" />
+                  Chauffeurs en attente de validation
+                </Card.Title>
+              </div>
+              <Badge bg="warning" text="dark">{pendingDrivers.length}</Badge>
+            </div>
+          </Card.Header>
+          <Card.Body className="p-0">
+            <ListGroup variant="flush">
+              {pendingDrivers.slice(0, 5).map((driver) => (
+                <ListGroup.Item key={driver._id} className="d-flex align-items-center gap-3">
+                  <div className="avatar-circle bg-warning text-white" style={{ width: 40, height: 40, fontSize: '0.875rem' }}>
+                    {`${(driver.prenom||'').charAt(0)}${(driver.nom||'').charAt(0)}`.toUpperCase()}
+                  </div>
+                  <div className="flex-grow-1">
+                    <div className="fw-semibold small">{driver.prenom} {driver.nom}</div>
+                    <div className="text-muted small">{driver.email}</div>
+                    {driver.vehicule && (
+                      <div className="text-muted small">
+                        {driver.vehicule.marque} {driver.vehicule.modele} - {driver.vehicule.immatriculation}
+                      </div>
+                    )}
+                  </div>
+                  <div className="d-flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline-primary"
+                      onClick={() => navigate('/drivers-validation')}
+                      title="Voir détails"
+                    >
+                      <Eye size={16} />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="success"
+                      onClick={() => handleValidateDriver(driver._id, 'VALIDE')}
+                      disabled={validatingDriver === driver._id}
+                      title="Valider"
+                    >
+                      {validatingDriver === driver._id ? (
+                        <Spinner animation="border" size="sm" />
+                      ) : (
+                        <UserCheck size={16} />
+                      )}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="danger"
+                      onClick={() => handleValidateDriver(driver._id, 'REJETE')}
+                      disabled={validatingDriver === driver._id}
+                      title="Rejeter"
+                    >
+                      {validatingDriver === driver._id ? (
+                        <Spinner animation="border" size="sm" />
+                      ) : (
+                        <UserX size={16} />
+                      )}
+                    </Button>
+                  </div>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+            {pendingDrivers.length > 5 && (
+              <Card.Footer className="text-center">
+                <Button 
+                  variant="link" 
+                  size="sm"
+                  onClick={() => navigate('/drivers-validation')}
+                >
+                  Voir tous les chauffeurs en attente ({pendingDrivers.length})
+                </Button>
+              </Card.Footer>
+            )}
+          </Card.Body>
+        </Card>
+      )}
 
       {/* Detailed Stats */}
       <Card className="mb-4 shadow-sm">

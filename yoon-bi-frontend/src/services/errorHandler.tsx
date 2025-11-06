@@ -1,17 +1,7 @@
 import { ErrorBoundary as ErrorBoundaryComponent } from '../components/ErrorBoundary';
-import type { ComponentType, ErrorInfo as ReactErrorInfo } from 'react';
+import type { ComponentType, ErrorInfo as ReactErrorInfo, ReactNode, FC } from 'react';
 
 // Types pour la fonction withErrorBoundary
-type ErrorBoundaryProps = {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-  onError?: (error: Error, errorInfo: ReactErrorInfo) => void;
-};
-
-type WithErrorBoundaryProps<T> = T & {
-  fallback?: ComponentType<{ error?: Error }>;
-  onError?: (error: Error, errorInfo: ReactErrorInfo) => void;
-};
 
 type ErrorLevel = 'error' | 'warning' | 'info';
 
@@ -77,10 +67,10 @@ class ErrorHandler {
     // Journalisation en mode développement
     if (this.isDevelopment) {
       const logMessage = `[${level.toUpperCase()}] ${message}`;
-      const logContext = { ...context };
+      const logContext = { ...context } as Record<string, unknown>;
       
       if (error instanceof Error) {
-        logContext.stack = error.stack;
+        (logContext as Record<string, unknown>).stack = error.stack;
       }
       
       switch (level) {
@@ -159,9 +149,9 @@ export function withErrorBoundary<T extends Record<string, unknown>>(
     FallbackComponent?: ComponentType<{ error?: Error }>;
     onError?: (error: Error, errorInfo: ReactErrorInfo) => void;
   }
-): React.FC<T> {
-  const WrappedComponent: React.FC<T> = (props) => {
-    const { FallbackComponent, onError } = options || {};
+): FC<T> {
+  const WrappedComponent: FC<T> = (props) => {
+    const { FallbackComponent, onError: _onError } = options || {};
     
     const fallback = FallbackComponent ? (
       <FallbackComponent />
@@ -172,15 +162,15 @@ export function withErrorBoundary<T extends Record<string, unknown>>(
     );
 
     return (
-      <ErrorBoundaryComponent fallback={fallback} onError={onError}>
-        <Component {...props} />
+      <ErrorBoundaryComponent fallback={fallback}>
+        <Component {...(props as T)} />
       </ErrorBoundaryComponent>
     );
   };
 
   // Ajouter un nom d'affichage pour le débogage
-  const displayName = Component.displayName || Component.name || 'Component';
-  WrappedComponent.displayName = `withErrorBoundary(${displayName})`;
+  const displayName = (Component as any).displayName || (Component as any).name || 'Component';
+  (WrappedComponent as any).displayName = `withErrorBoundary(${displayName})`;
 
   return WrappedComponent;
 }

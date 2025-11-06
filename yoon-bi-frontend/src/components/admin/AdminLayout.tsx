@@ -1,7 +1,7 @@
 import { AdminLayout as BaseAdminLayout } from '../layout/AdminLayout';
 import type { User } from '../../types/user';
 
-type PageKey = 'dashboard' | 'users' | 'drivers' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
+type PageKey = 'dashboard' | 'users' | 'drivers' | 'drivers-validation' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
 
 interface AdminLayoutProps {
   currentPage: string;
@@ -11,7 +11,7 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ currentPage, onNavigate, onLogout, user }: AdminLayoutProps) {
-  const allowed: PageKey[] = ['dashboard','users','drivers','trips','financial','reports','profile','settings'];
+  const allowed: PageKey[] = ['dashboard','users','drivers','drivers-validation','trips','financial','reports','profile','settings'];
   const active: PageKey = allowed.includes(currentPage as PageKey) ? (currentPage as PageKey) : 'dashboard';
   const handleNavigate = (p: PageKey) => onNavigate(p);
   return (
