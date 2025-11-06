@@ -1,82 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Eye, FileText, DollarSign, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { Search, Eye, FileText } from 'lucide-react';
 import { Card, Button, Form, InputGroup, Badge, Table, Pagination } from 'react-bootstrap';
-import { AdminFinanceAPI, type Paiement, type TrajetEnAttente } from '../../services/api';
+import { AdminFinanceAPI, type Paiement } from '../../services/api';
 
 export function Financial() {
   const [recherche, setRecherche] = useState('');
   const [filtreStatut, setFiltreStatut] = useState<'all' | 'success' | 'pending'>('all');
-  const [filtrePeriode, setFiltrePeriode] = useState<'month' | 'quarter' | 'year' | 'custom'>('month');
   const [pageCourante, setPageCourante] = useState(1);
   const elementsParPage = 10;
 
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState<string>('');
 
-  const [kpiTotalRevenus, setKpiTotalRevenus] = useState<number>(0);
-  const [kpiCommission, setKpiCommission] = useState<number>(0);
-  const [kpiVerseAuxChauffeurs, setKpiVerseAuxChauffeurs] = useState<number>(0);
-  const [kpiEnAttente, setKpiEnAttente] = useState<number>(0);
-
-  const [statsMoisTrajets, setStatsMoisTrajets] = useState<number>(0);
-  const [statsMoisPrixTotal, setStatsMoisPrixTotal] = useState<number>(0);
-  const [statsMoisCommission, setStatsMoisCommission] = useState<number>(0);
-  const [statsMoisNet, setStatsMoisNet] = useState<number>(0);
-
   const [paiements, setPaiements] = useState<Paiement[]>([]);
   const [totalPages, setTotalPages] = useState(1);
 
-  const [trajetsEnAttente, setTrajetsEnAttente] = useState<TrajetEnAttente[]>([]);
-
-  // Charger KPI + stats
-  useEffect(() => {
-    let mounted = true;
-    const chargerStats = async () => {
-      try {
-        console.log('[FINANCE] Chargement des stats pour période:', filtrePeriode);
-        setErreur('');
-        
-        const r = await AdminFinanceAPI.stats(filtrePeriode);
-        console.log('[FINANCE] Stats reçues:', r);
-        
-        const totalRevenue = Number(r?.kpi?.totalRevenue ?? 0);
-        const commission = Number(r?.kpi?.commission ?? 0);
-        const paidToDrivers = Number(r?.kpi?.paidToDrivers ?? (totalRevenue - commission));
-        const pendingValidation = Number(r?.kpi?.pendingValidation ?? 0);
-        const completedTrips = Number(r?.monthly?.completedTrips ?? 0);
-        const totalTripPrice = Number(r?.monthly?.totalTripPrice ?? totalRevenue);
-        const commissionMonth = Number(r?.monthly?.commission ?? commission);
-        const netPaid = Number(r?.monthly?.netPaid ?? paidToDrivers);
-
-        if (!mounted) return;
-        
-        console.log('[FINANCE] ✓ Stats calculées:', {
-          totalRevenue,
-          commission,
-          paidToDrivers,
-          pendingValidation,
-          completedTrips
-        });
-        
-        setKpiTotalRevenus(totalRevenue);
-        setKpiCommission(commission);
-        setKpiVerseAuxChauffeurs(paidToDrivers);
-        setKpiEnAttente(pendingValidation);
-        setStatsMoisTrajets(completedTrips);
-        setStatsMoisPrixTotal(totalTripPrice);
-        setStatsMoisCommission(commissionMonth);
-        setStatsMoisNet(netPaid);
-      } catch (e: any) {
-        console.error('[FINANCE] ✗ Erreur stats:', e);
-        if (!mounted) return;
-        setErreur(e?.message || 'Erreur lors du chargement des statistiques');
-      }
-    };
-    chargerStats();
-    return () => { mounted = false; };
-  }, [filtrePeriode]);
-
-  // Charger paiements + trajets en attente
+  // Charger paiements
   useEffect(() => {
     let mounted = true;
     const chargerPaiements = async () => {
@@ -107,22 +46,7 @@ export function Financial() {
       }
     };
     
-    const chargerEnAttente = async () => {
-      try {
-        console.log('[FINANCE] Chargement trajets en attente...');
-        const r = await AdminFinanceAPI.pendingTrips();
-        console.log('[FINANCE] Trajets en attente reçus:', r);
-        
-        if (!mounted) return;
-        setTrajetsEnAttente(r || []);
-        console.log('[FINANCE] ✓ Trajets en attente chargés:', r?.length || 0);
-      } catch (e) {
-        console.error('[FINANCE] ✗ Erreur trajets en attente:', e);
-      }
-    };
-    
     chargerPaiements();
-    chargerEnAttente();
     return () => { mounted = false; };
   }, [filtreStatut, pageCourante, elementsParPage, recherche]);
 
@@ -132,7 +56,7 @@ export function Financial() {
     <div className="container py-3">
       <div className="mb-3">
         <h2 className="h5 mb-1">Gestion financière</h2>
-        <div className="text-muted small">Suivi des revenus et paiements</div>
+        <div className="text-muted small">Historique des versements</div>
       </div>
 
       {erreur && (
@@ -144,151 +68,6 @@ export function Financial() {
           </div>
         </div>
       )}
-
-      <Card className="mb-3">
-        <Card.Body>
-          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div>
-              <Form.Select style={{ width: 220 }} value={filtrePeriode} onChange={(e) => setFiltrePeriode(e.target.value as any)}>
-                <option value="month">Ce mois</option>
-                <option value="quarter">Ce trimestre</option>
-                <option value="year">Cette année</option>
-              </Form.Select>
-            </div>
-            <div className="text-muted small">Période: {filtrePeriode}</div>
-          </div>
-        </Card.Body>
-      </Card>
-
-      <div className="row g-3 mb-3">
-        <div className="col-12 col-md-6 col-lg-3">
-          <Card>
-            <Card.Body>
-              <div className="d-flex justify-content-between">
-                <div>
-                  <div className="text-muted small">Revenus totaux</div>
-                  <div className="h5 mt-1 mb-0">{kpiTotalRevenus.toLocaleString()} FCFA</div>
-                  <div className="d-flex align-items-center gap-1 text-success small mt-1"><TrendingUp size={14} /> —</div>
-                </div>
-                <div className="bg-primary p-2 rounded text-white"><DollarSign size={20} /></div>
-              </div>
-            </Card.Body>
-          </Card>
-        </div>
-        <div className="col-12 col-md-6 col-lg-3">
-          <Card>
-            <Card.Body>
-              <div className="d-flex justify-content-between">
-                <div>
-                  <div className="text-muted small">Ma commission collectée</div>
-                  <div className="h5 mt-1 mb-0">{kpiCommission.toLocaleString()} FCFA</div>
-                  <div className="text-muted small mt-1">15% du total</div>
-                </div>
-                <div className="bg-success p-2 rounded text-white"><DollarSign size={20} /></div>
-              </div>
-            </Card.Body>
-          </Card>
-        </div>
-        <div className="col-12 col-md-6 col-lg-3">
-          <Card>
-            <Card.Body>
-              <div className="d-flex justify-content-between">
-                <div>
-                  <div className="text-muted small">Versé aux chauffeurs</div>
-                  <div className="h5 mt-1 mb-0">{kpiVerseAuxChauffeurs.toLocaleString()} FCFA</div>
-                  <div className="text-muted small mt-1">{statsMoisTrajets} versements</div>
-                </div>
-                <div className="bg-purple p-2 rounded text-white" style={{ backgroundColor: '#6f42c1' }}><CheckCircle size={20} /></div>
-              </div>
-            </Card.Body>
-          </Card>
-        </div>
-        <div className="col-12 col-md-6 col-lg-3">
-          <Card>
-            <Card.Body>
-              <div className="d-flex justify-content-between">
-                <div>
-                  <div className="text-muted small">En attente de validation</div>
-                  <div className="h5 mt-1 mb-0">{kpiEnAttente.toLocaleString()} FCFA</div>
-                  <div className="text-muted small mt-1">{trajetsEnAttente.length} trajets</div>
-                </div>
-                <div className="bg-warning p-2 rounded text-white"><Clock size={20} /></div>
-              </div>
-            </Card.Body>
-          </Card>
-        </div>
-      </div>
-
-      <Card className="mb-3">
-        <Card.Header>
-          <div className="h6 mb-0">Statistiques du mois</div>
-        </Card.Header>
-        <Card.Body>
-          <div className="row g-3">
-            <div className="col-6 col-md-3">
-              <div className="p-3 bg-light rounded text-center">
-                <div className="text-muted small">Trajets effectués</div>
-                <div className="h5 mb-0 mt-1">{statsMoisTrajets}</div>
-              </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="p-3 bg-light rounded text-center">
-                <div className="text-muted small">Prix total des trajets</div>
-                <div className="h6 mb-0 mt-1">{statsMoisPrixTotal.toLocaleString()} FCFA</div>
-              </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="p-3 bg-light rounded text-center">
-                <div className="text-muted small">Commission plateforme (15%)</div>
-                <div className="h6 mb-0 mt-1 text-success">{statsMoisCommission.toLocaleString()} FCFA</div>
-              </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="p-3 bg-light rounded text-center">
-                <div className="text-muted small">Net versé</div>
-                <div className="h6 mb-0 mt-1">{statsMoisNet.toLocaleString()} FCFA</div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-3 p-3 rounded" style={{ background: '#e7f1ff', border: '1px solid #cfe2ff' }}>
-            <div className="small" style={{ color: '#084298' }}>
-              💡 Les paiements sont versés automatiquement sur le compte des chauffeurs après validation de chaque trajet par le client
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
-
-      <Card className="mb-3">
-        <Card.Header>
-          <div className="h6 mb-1 d-flex align-items-center gap-2"><Clock size={16} className="text-warning" />En attente de validation client</div>
-          <div className="text-muted small">Ces trajets sont payés mais pas encore validés</div>
-        </Card.Header>
-        <Card.Body>
-          <div className="d-flex flex-column gap-2">
-            {trajetsEnAttente.map((trip, idx) => (
-              <div key={idx} className="p-3 rounded" style={{ background: '#fff3cd', border: '1px solid #ffe69c' }}>
-                <div className="d-flex justify-content-between align-items-start">
-                  <div>
-                    <div>{trip.trip}</div>
-                    <div className="d-flex gap-3 text-muted small mt-1">
-                      <div>Client: {trip.client}</div>
-                      <div>Chauffeur: {trip.driver}</div>
-                    </div>
-                    <div className="text-muted small mt-1">Date du trajet: {trip.tripDate}</div>
-                  </div>
-                  <div className="text-end">
-                    <div className="fw-semibold">{trip.amount.toLocaleString()} FCFA</div>
-                    <Badge bg="warning" text="dark" className="mt-1">⏳ En attente</Badge>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-center small">
-            Total en attente: <strong>{trajetsEnAttente.reduce((s, t) => s + t.amount, 0).toLocaleString()} FCFA</strong>
-          </div>
-        </Card.Body>
-      </Card>
 
       <Card>
         <Card.Header>

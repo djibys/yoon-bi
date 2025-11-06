@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { House, Users, Car, Ticket, Wallet, AlertTriangle, User, Settings, UserCheck } from 'lucide-react';
 import { Logo } from '../Logo';
 import type { User as UserType } from '../../types/user';
+import { useState, useEffect } from 'react';
 
 type PageKey = 'dashboard' | 'users' | 'drivers' | 'drivers-validation' | 'trips' | 'financial' | 'reports' | 'profile' | 'settings';
 
@@ -14,6 +15,29 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ onLogout, onNavigate, active, user }: AdminLayoutProps) {
+  const [currentDate, setCurrentDate] = useState('');
+
+  useEffect(() => {
+    const updateDate = () => {
+      const now = new Date();
+      const options: Intl.DateTimeFormatOptions = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const dateStr = now.toLocaleDateString('fr-FR', options);
+      // Capitaliser la première lettre
+      setCurrentDate(dateStr.charAt(0).toUpperCase() + dateStr.slice(1));
+    };
+    
+    updateDate();
+    // Mettre à jour toutes les minutes
+    const interval = setInterval(updateDate, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLogout = () => {
     try {
       localStorage.removeItem('token');
@@ -72,10 +96,9 @@ export function AdminLayout({ onLogout, onNavigate, active, user }: AdminLayoutP
             <Wallet size={18} />
             <span>Gestion financière</span>
           </Nav.Link>
-          <Nav.Link active={active === 'reports'} onClick={() => onNavigate?.('reports')} className="sidebar-link d-flex align-items-center gap-2 position-relative">
+          <Nav.Link active={active === 'reports'} onClick={() => onNavigate?.('reports')} className="sidebar-link d-flex align-items-center gap-2">
             <AlertTriangle size={18} />
             <span>Signalements</span>
-            <span className="badge rounded-pill bg-danger ms-auto">5</span>
           </Nav.Link>
         </Nav>
       </aside>
@@ -83,15 +106,14 @@ export function AdminLayout({ onLogout, onNavigate, active, user }: AdminLayoutP
       <div className="main-content">
         <Navbar expand="lg" className="navbar">
           <Container fluid className="px-4">
-            <Navbar.Text className="text-muted me-auto">Lundi 20 Octobre 2025</Navbar.Text>
+            <Navbar.Text className="text-muted me-auto">{currentDate}</Navbar.Text>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
               <Nav>
-                <div className="notif-dot" />
                 <Dropdown align="end" className="dropdown-no-arrow ms-3">
                   <Dropdown.Toggle as="div" className="p-0 bg-transparent border-0" style={{ backgroundImage: 'none', cursor: 'pointer' }}>
                     <div className="d-flex align-items-center gap-2 cursor-pointer">
-                      {user?.photo ? (
+                      {/* {user?.photo ? (
                         <img 
                           src={user.photo} 
                           alt="Profile" 
@@ -99,10 +121,10 @@ export function AdminLayout({ onLogout, onNavigate, active, user }: AdminLayoutP
                           style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%' }}
                         />
                       ) : (
-                        <div className="avatar-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style={{ fontSize: '12px', width: '36px', height: '36px' }}>
-                          {user?.prenom?.charAt(0)}{user?.nom?.charAt(0)}
+                        <div className="avatar-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style={{ fontSize: '12px', width: '36px', height: '36px', borderRadius: '50%' }}>
+                          {user?.prenom?.charAt(0).toUpperCase()}{user?.nom?.charAt(0).toUpperCase()}
                         </div>
-                      )}
+                      )} */}
                       <div className="d-none d-sm-block">
                         <div className="fw-semibold small">{user?.prenom} {user?.nom}</div>
                         <div className="text-muted small">{user?.email}</div>
