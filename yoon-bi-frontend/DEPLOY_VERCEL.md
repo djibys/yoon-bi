@@ -52,7 +52,9 @@ git push origin main
    ```
    Build Command: npm run build:prod
    Output Directory: dist
-   Install Command: npm install (défaut, ne pas changer)
+   Install Command: npm install (défaut)
+   
+   ⚠️ IMPORTANT: Bien mettre "npm run build:prod" (pas juste "vite build")
    ```
 
 4. **Environment Variables (CRITIQUE):**
@@ -166,6 +168,20 @@ Pour forcer:
 3. Suivre les instructions DNS
 
 ## 🐛 Troubleshooting
+
+### "vite: command not found" ou "Command exited with 127"
+**Cause:** Build Command incorrecte ou vite non installé
+
+**Solution:**
+1. Vérifier que Build Command = `npm run build:prod` (pas `vite build`)
+2. Le `package.json` a été corrigé pour utiliser `npx vite build`
+3. Commit et push le nouveau `package.json`:
+   ```bash
+   git add package.json
+   git commit -m "Fix: Use npx for vite build"
+   git push origin main
+   ```
+4. Sur Vercel: Redeploy
 
 ### Build échoue
 - Vérifier que `npm run build:prod` fonctionne localement
