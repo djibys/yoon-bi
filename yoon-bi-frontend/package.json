@@ -9,8 +9,7 @@
     "build": "tsc -b && vite build",
     "build:prod": "tsc -b && vite build --config vite.config.prod.ts",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "clean": "node scripts/clean.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
