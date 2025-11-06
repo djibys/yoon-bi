@@ -1,6 +1,0 @@
-# Ignorer les fichiers inutiles pour le build
-node_modules
-.git
-.env.local
-.env
-*.log
