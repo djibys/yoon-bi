@@ -31,16 +31,20 @@ git push origin main
 
 ### 3. Configuration du projet Vercel
 
-**Framework Preset:** Vite
+**IMPORTANT:** Pas de `vercel.json` - Vercel détecte automatiquement Vite.
+
+**Framework Preset:** Vite (auto-détecté)
 
 **Build & Development Settings:**
 - Build Command: `npm run build:prod`
 - Output Directory: `dist`
-- Install Command: `npm install`
+- Install Command: `npm install` (par défaut)
 
 **Root Directory:** 
 - Si monorepo: `front/yoon-bi/yoon-bi-frontend`
 - Si repo séparé: laisser vide (`.`)
+
+**Note:** Vercel gère automatiquement le SPA fallback pour React Router
 
 ### 4. Variables d'environnement
 
